@@ -30,7 +30,8 @@
     that poi is listed first!
 """
 
-
+import warnings
+warnings.filterwarnings('ignore')
 import numpy as np
 
 def featureFormat( dictionary, features, remove_NaN=True, remove_all_zeroes=True, remove_any_zeroes=False, sort_keys = False):
