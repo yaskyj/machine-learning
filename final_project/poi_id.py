@@ -3,6 +3,7 @@
 import sys
 import pickle
 sys.path.append("../tools/")
+import pandas as pd
 
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
@@ -16,6 +17,9 @@ features_list = ['poi','salary'] # You will need to use more features
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
+df = pd.DataFrame.from_dict(data_dict, orient='index')
+print df.head()
+print df.dtypes
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.

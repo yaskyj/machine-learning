@@ -14,7 +14,8 @@ def outlierCleaner(predictions, ages, net_worths):
     cleaned_data = []
 
     ### your code goes here
-
-    
+    cleaned_data = [(x[0],y[0],abs(z[0]-y[0])) for x,y,z in zip(ages, net_worths, predictions)]
+    cleaned_data = sorted(cleaned_data, key=lambda k: k[2])
+    cleaned_data = cleaned_data[:-9]
     return cleaned_data
 
