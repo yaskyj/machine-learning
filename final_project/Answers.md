@@ -1,7 +1,23 @@
 [Jupyter Notebook with Analysis and Explanations](https://github.com/yaskyj/machine-learning/blob/master/final_project/Enron%20Dataset%20Exploration.ipynb)
 1. Summarize for us the goal of this project and how machine learning is useful in trying to accomplish it. As part of your answer, give some background on the dataset and how it can be used to answer the project question. Were there any outliers in the data when you got it, and how did you handle those?  [relevant rubric items: “data exploration”, “outlier investigation”]
 
-Using various monetary and email features, the goal is to identify persons of interest in the Enron investigation. The dataset consists of the largest corpus of emails from a private companry available. In addition, other features were generated from the financial statements of the company found online. There was one major outlier in the dataset. Upon investigation, this was a mistake from the spreadsheet containing all monetary information used in the features. The "TOTAL" field was picked up in the spreadsheet and was removed as an outlier.
+Using various monetary and email features, the goal is to identify persons of interest in the Enron investigation. Supervised machine learning can determine which attributes of the dataset contribute to the determination of wherther the person of interest or not. In addition, machine learning can combine these attributes to produce a model which predicts the probability of whether a person is a POI or not.
+
+Some basic characteristics of the data:
+Total number people in dataset: 146
+Number of POI: 18
+Number of Non POI: 128
+Number of features in data: 22
+
+Features containing 50% NA values:
+loan_advances 142
+director_fees 129
+restricted_stock_deferred 128
+deferral_payments 107
+deferred_income 97
+long_term_incentive 80
+
+The dataset consists of the largest corpus of emails from a private companry available. In addition, other features were generated from the financial statements of the company found online. There was one major outlier in the dataset. Upon investigation, this was a mistake from the spreadsheet containing all monetary information used in the features. The "TOTAL" field was picked up in the spreadsheet and was removed as an outlier.
 
 2. What features did you end up using in your POI identifier, and what selection process did you use to pick them? Did you have to do any scaling? Why or why not? As part of the assignment, you should attempt to engineer your own feature that does not come ready-made in the dataset -- explain what feature you tried to make, and the rationale behind it. (You do not necessarily have to use it in the final analysis, only engineer and test it.) In your feature selection step, if you used an algorithm like a decision tree, please also give the feature importances of the features that you use, and if you used an automated feature selection function like SelectKBest, please report the feature scores and reasons for your choice of parameter values.  [relevant rubric items: “create new features”, “intelligently select features”, “properly scale features”]
 

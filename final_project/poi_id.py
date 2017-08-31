@@ -8,6 +8,12 @@ sys.path.append("../tools/")
 import pandas as pd
 from scipy import stats
 import numpy as np
+# Importing a variety of classifiers
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report
+from sklearn.naive_bayes import GaussianNB
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import precision_score, recall_score
 
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
@@ -88,10 +94,6 @@ temp_features = [a for a, t in zip(temp_features, selector.get_support()) if t]
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-# Importing a variety of classifiers
-from sklearn.svm import SVC
-from sklearn.metrics import classification_report
-from sklearn.naive_bayes import GaussianNB
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -105,84 +107,84 @@ from sklearn.cross_validation import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(df[temp_features], df['poi'], test_size=0.3, random_state=42)
 
-from sklearn.grid_search import GridSearchCV
-from sklearn.metrics import precision_score, recall_score
+def runGridSearches
+  naive = GaussianNB()
 
-# naive = GaussianNB()
+  naive = naive.fit(features_train, labels_train)
 
-# naive = naive.fit(features_train, labels_train)
+  pred = naive.predict(features_test)
 
-# pred = naive.predict(features_test)
+  print precision_score(labels_test, pred)
+  print recall_score(labels_test, pred)
 
-# print precision_score(labels_test, pred)
-# print recall_score(labels_test, pred)
+  ## Set the parameters by cross-validation
+  ## This is from http://scikit-learn.org/0.15/auto_examples/grid_search_digits.html
+  tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
+                       'C': [1, 10, 100, 1000]},
+                      {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
 
-### Set the parameters by cross-validation
-### This is from http://scikit-learn.org/0.15/auto_examples/grid_search_digits.html
-# tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-#                      'C': [1, 10, 100, 1000]},
-#                     {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+  scores = ['precision', 'recall']
 
-# scores = ['precision', 'recall']
+  for score in scores:
+      print("# Tuning hyper-parameters for %s" % score)
+      print()
 
-# for score in scores:
-#     print("# Tuning hyper-parameters for %s" % score)
-#     print()
+      clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5, scoring=score)
+      clf.fit(features_train, labels_train)
 
-#     clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5, scoring=score)
-#     clf.fit(features_train, labels_train)
+      print("Best parameters set found on development set:")
+      print()
+      print(clf.best_estimator_)
+      print()
+      print("Grid scores on development set:")
+      print()
+      for params, mean_score, scores in clf.grid_scores_:
+          print("%0.3f (+/-%0.03f) for %r"
+                % (mean_score, scores.std() / 2, params))
+      print()
 
-#     print("Best parameters set found on development set:")
-#     print()
-#     print(clf.best_estimator_)
-#     print()
-#     print("Grid scores on development set:")
-#     print()
-#     for params, mean_score, scores in clf.grid_scores_:
-#         print("%0.3f (+/-%0.03f) for %r"
-#               % (mean_score, scores.std() / 2, params))
-#     print()
+      print("Detailed classification report:")
+      print()
+      print("The model is trained on the full development set.")
+      print("The scores are computed on the full evaluation set.")
+      print()
+      y_true, y_pred = labels_test, clf.predict(features_test)
+      print(classification_report(y_true, y_pred))
+      print()
+      
+  Set the parameters by cross-validation
+  tuned_parameters = [{'n_estimators': [10, 100, 1000], 'min_samples_split': [5, 10, 20]}]
 
-#     print("Detailed classification report:")
-#     print()
-#     print("The model is trained on the full development set.")
-#     print("The scores are computed on the full evaluation set.")
-#     print()
-#     y_true, y_pred = labels_test, clf.predict(features_test)
-#     print(classification_report(y_true, y_pred))
-#     print()
-    
-#Set the parameters by cross-validation
-# tuned_parameters = [{'n_estimators': [10, 100, 1000], 'min_samples_split': [5, 10, 20]}]
+  scores = ['precision', 'recall']
 
-# scores = ['precision', 'recall']
+  for score in scores:
+      print("# Tuning hyper-parameters for %s" % score)
+      print()
 
-# for score in scores:
-#     print("# Tuning hyper-parameters for %s" % score)
-#     print()
+      clf = GridSearchCV(RandomForestClassifier(), tuned_parameters, cv=5, scoring=score)
+      clf.fit(features_train, labels_train)
 
-#     clf = GridSearchCV(RandomForestClassifier(), tuned_parameters, cv=5, scoring=score)
-#     clf.fit(features_train, labels_train)
+      print("Best parameters set found on development set:")
+      print()
+      print(clf.best_estimator_)
+      print()
+      print("Grid scores on development set:")
+      print()
+      for params, mean_score, scores in clf.grid_scores_:
+          print("%0.3f (+/-%0.03f) for %r"
+                % (mean_score, scores.std() / 2, params))
+      print()
 
-#     print("Best parameters set found on development set:")
-#     print()
-#     print(clf.best_estimator_)
-#     print()
-#     print("Grid scores on development set:")
-#     print()
-#     for params, mean_score, scores in clf.grid_scores_:
-#         print("%0.3f (+/-%0.03f) for %r"
-#               % (mean_score, scores.std() / 2, params))
-#     print()
+      print("Detailed classification report:")
+      print()
+      print("The model is trained on the full development set.")
+      print("The scores are computed on the full evaluation set.")
+      print()
+      y_true, y_pred = labels_test, clf.predict(features_test)
+      print(classification_report(y_true, y_pred))
+      print()
 
-#     print("Detailed classification report:")
-#     print()
-#     print("The model is trained on the full development set.")
-#     print("The scores are computed on the full evaluation set.")
-#     print()
-#     y_true, y_pred = labels_test, clf.predict(features_test)
-#     print(classification_report(y_true, y_pred))
-#     print()
+# runGridSearches()
 
 ### Naive Bayes was most consistent
 print "Naive Bayes"
