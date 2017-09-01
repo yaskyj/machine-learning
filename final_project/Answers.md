@@ -35,38 +35,69 @@ long_term_incentive 80
 The final features list consisted of 'bonus', 'exercised_stock_options', and 'total_stock_value'. The select percentile feature selection function (using 30%) was used to eliminate almost one third of the total features. The chart below show the averages performance for three runs of each algorithm using the different percentages of features in the select percentile function. 30% was used as it showed the best performance tradeoff performance in both recall and precision. Before feature selection, the sklearn minmax scalar was used on all values as I knew that one of the classifiers I would use would be a support vector machine.
 
 Select Percentile Performance:
+
 10%
+
 Naive: recall = 0.266667, precision = 0.555556
+
 SVM: recall = 0.000000, precision = 0.000000
+
 Forest: recall = 0.133333, precision = 0.333333
+
 20%
+
 Naive: recall = 0.266667, precision = 0.500000
+
 SVM: recall = 0.000000, precision = 0.000000
+
 Forest: recall = 0.133333, precision = 0.222222
+
 30%
+
 Naive: recall = 0.333333, precision = 0.412500
+
 SVM: recall = 0.033333, precision = 0.166667
+
 Forest: recall = 0.133333, precision = 0.416667
+
 40%
+
 Naive: recall = 0.266667, precision = 0.500000
+
 SVM: recall = 0.000000, precision = 0.000000
+
 Forest: recall = 0.266667, precision = 0.500000
+
 50%
+
 Naive: recall = 0.400000, precision = 0.267857
+
 SVM: recall = 0.000000, precision = 0.000000
+
 Forest: recall = 0.200000, precision = 0.444444
+
 60%
+
 Naive: recall = 0.400000, precision = 0.267857
+
 SVM: recall = 0.000000, precision = 0.000000
+
 Forest: recall = 0.133333, precision = 0.444444
+
 100%
+
 Naive: recall = 0.800000, precision = 0.140453
+
 SVM: recall = 0.066667, precision = 0.166667
+
 Forest: recall = 0.133333, precision = 0.500000
 
 Below are the feature importance scores output from SelectPercentile (since Random Forest was used in the recursive feature selection, these can change on subsequent script runs so I hard coded these features into subsequent runs of the script for consistency):
+
 exercised_stock_options 6.84550933503
+
 bonus 5.12075413709
+
 total_stock_value 5.47661009929
 
 Before feature selection occurred, I added a feature called "expense_percent" which took expense divided by salary. I believed that perhaps POIs would incur expenses at a higher rate than others. Ultimately, this feature was not used as it was removed by the feature selection algorithms.
