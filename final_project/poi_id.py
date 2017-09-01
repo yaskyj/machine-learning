@@ -8,12 +8,6 @@ sys.path.append("../tools/")
 import pandas as pd
 from scipy import stats
 import numpy as np
-# Importing a variety of classifiers
-from sklearn.svm import SVC
-from sklearn.metrics import classification_report
-from sklearn.naive_bayes import GaussianNB
-from sklearn.grid_search import GridSearchCV
-from sklearn.metrics import precision_score, recall_score
 
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
@@ -43,15 +37,18 @@ print "Total number people in dataset: %.0f\nNumber of POI: %.0f\nNumber of Non 
 print "Totals NAs for each number column:\n", df.isnull().sum(), "\nTotal NAs for email address: %.0f" % (len(df[df['email_address'] == 'NaN']))
 
 ### Task 2: Remove outliers
-### Upon inspecting the dataset, the TOTAL column was added. This is removed below.
+### Upon inspecting the dataset, the TOTAL column was added, an item which was not actually a person was added, 
+### and Eugene Lockhart didn't have any values associated with any features. This is removed below.
 df = df[df['index'] != 'TOTAL']
+df = df[df['index'] != 'THE TRAVEL AGENCY IN THE PARK']
+df = df[df['index'] != 'LOCKHART EUGENE E']
 
 ### Now we'll fill NaN amounts with 0
 df = df.fillna(0)
 
 ### Task 3: Create new feature(s)
 ### New features using all emails including poi with this person
-df['total_poi_emails'] = df['shared_receipt_with_poi'] + df['from_this_person_to_poi'] + df['from_poi_to_this_person']
+df['expense_percent'] = df['expenses']/(df['salary']+1)
 
 ### Temporary features for analysis
 temp_features = [c for c in df.columns if c not in ['index', 'poi', 'email_address']]
@@ -69,11 +66,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVR
 from sklearn.feature_selection import RFECV
 
-estimator = RandomForestClassifier()
+estimator = RandomForestClassifier(n_estimators=10)
 selector = RFECV(estimator, step=1, cv=5)
 selector = selector.fit(df[temp_features], df['poi'])
-print selector.ranking_
-print selector.support_
 
 ### Take the features selected by RFECV
 temp_features = [a for a, t in zip(temp_features, selector.support_) if t]
@@ -82,134 +77,153 @@ temp_features = [a for a, t in zip(temp_features, selector.support_) if t]
 from sklearn.feature_selection import SelectPercentile
 from sklearn.feature_selection import chi2
 
-selector = SelectPercentile(chi2, percentile=50).fit(df[temp_features], df['poi'])
+selector = SelectPercentile(chi2, percentile=30).fit(df[temp_features], df['poi'])
+feat_scores = [(a,t) for a, t, z in zip(temp_features, selector.scores_, selector.get_support()) if z] 
+for i in  feat_scores: print i[0], i[1]
 
 ### Take the features selected by SelectKBest
 temp_features = [a for a, t in zip(temp_features, selector.get_support()) if t]
+
+### These are the final features indetified the Answers.md document
+final_features = ['bonus', 'exercised_stock_options', 'total_stock_value']
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
 ### Note that if you want to do PCA or other multi-stage operations,
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
-
-# Provided to give you a starting point. Try a variety of classifiers.
-
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
 ### function. Because of the small size of the dataset, the script uses
 ### stratified shuffle split cross validation. For more info: 
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report
+from sklearn.naive_bayes import GaussianNB
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import precision_score, recall_score
 
-# Example starting point. Try investigating other evaluation techniques!
-from sklearn.cross_validation import train_test_split
-features_train, features_test, labels_train, labels_test = \
-    train_test_split(df[temp_features], df['poi'], test_size=0.3, random_state=42)
+from sklearn.model_selection import StratifiedShuffleSplit
+sss = StratifiedShuffleSplit(n_splits=3, test_size=0.3, random_state=42)
 
-def runGridSearches
-  naive = GaussianNB()
+def runGridSearches():
+  for train_index, test_index in sss.split(df[final_features], df['poi']):
+    X_train, X_test = df[final_features].iloc[train_index], df[final_features].iloc[test_index]
+    y_train, y_test = df['poi'].iloc[train_index], df['poi'].iloc[test_index]  
 
-  naive = naive.fit(features_train, labels_train)
+    ### Set the parameters by cross-validation
+    ### This is from http://scikit-learn.org/0.15/auto_examples/grid_search_digits.html
+    tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
+                         'C': [1, 10, 100, 1000]},
+                        {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
 
-  pred = naive.predict(features_test)
+    scores = ['precision', 'recall']
 
-  print precision_score(labels_test, pred)
-  print recall_score(labels_test, pred)
+    for score in scores:
+        print("# Tuning hyper-parameters for %s" % score)
+        print()
 
-  ## Set the parameters by cross-validation
-  ## This is from http://scikit-learn.org/0.15/auto_examples/grid_search_digits.html
-  tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                       'C': [1, 10, 100, 1000]},
-                      {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+        clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5, scoring=score)
+        clf.fit(X_train, y_train)
 
-  scores = ['precision', 'recall']
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_estimator_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        for params, mean_score, scores in clf.grid_scores_:
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean_score, scores.std() / 2, params))
+        print()
 
-  for score in scores:
-      print("# Tuning hyper-parameters for %s" % score)
-      print()
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        y_true, y_pred = y_test, clf.predict(X_test)
+        print(classification_report(y_true, y_pred))
+        print()
+        
 
-      clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5, scoring=score)
-      clf.fit(features_train, labels_train)
+  for train_index, test_index in sss.split(df[final_features], df['poi']):
+    X_train, X_test = df[final_features].iloc[train_index], df[final_features].iloc[test_index]
+    y_train, y_test = df['poi'].iloc[train_index], df['poi'].iloc[test_index]  
 
-      print("Best parameters set found on development set:")
-      print()
-      print(clf.best_estimator_)
-      print()
-      print("Grid scores on development set:")
-      print()
-      for params, mean_score, scores in clf.grid_scores_:
-          print("%0.3f (+/-%0.03f) for %r"
-                % (mean_score, scores.std() / 2, params))
-      print()
+    ### Set the parameters by cross-validation
+    tuned_parameters = [{'n_estimators': [10, 100, 1000], 'min_samples_split': [5, 10, 20]}]
 
-      print("Detailed classification report:")
-      print()
-      print("The model is trained on the full development set.")
-      print("The scores are computed on the full evaluation set.")
-      print()
-      y_true, y_pred = labels_test, clf.predict(features_test)
-      print(classification_report(y_true, y_pred))
-      print()
-      
-  Set the parameters by cross-validation
-  tuned_parameters = [{'n_estimators': [10, 100, 1000], 'min_samples_split': [5, 10, 20]}]
+    scores = ['precision', 'recall']
 
-  scores = ['precision', 'recall']
+    for score in scores:
+        print("# Tuning hyper-parameters for %s" % score)
+        print()
 
-  for score in scores:
-      print("# Tuning hyper-parameters for %s" % score)
-      print()
+        clf = GridSearchCV(RandomForestClassifier(), tuned_parameters, cv=5, scoring=score)
+        clf.fit(X_train, y_train)
 
-      clf = GridSearchCV(RandomForestClassifier(), tuned_parameters, cv=5, scoring=score)
-      clf.fit(features_train, labels_train)
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_estimator_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        for params, mean_score, scores in clf.grid_scores_:
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean_score, scores.std() / 2, params))
+        print()
 
-      print("Best parameters set found on development set:")
-      print()
-      print(clf.best_estimator_)
-      print()
-      print("Grid scores on development set:")
-      print()
-      for params, mean_score, scores in clf.grid_scores_:
-          print("%0.3f (+/-%0.03f) for %r"
-                % (mean_score, scores.std() / 2, params))
-      print()
-
-      print("Detailed classification report:")
-      print()
-      print("The model is trained on the full development set.")
-      print("The scores are computed on the full evaluation set.")
-      print()
-      y_true, y_pred = labels_test, clf.predict(features_test)
-      print(classification_report(y_true, y_pred))
-      print()
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        y_true, y_pred = y_test, clf.predict(X_test)
+        print(classification_report(y_true, y_pred))
+        print()
 
 # runGridSearches()
 
-### Naive Bayes was most consistent
-print "Naive Bayes"
-clf = GaussianNB()
-clf = clf.fit(features_train, labels_train)
-pred = clf.predict(features_test)
-print precision_score(labels_test, pred)
-print recall_score(labels_test, pred)
+for train_index, test_index in sss.split(df[final_features], df['poi']):
+  # print("TRAIN:", train_index, "TEST:", test_index)
+  X_train, X_test = df[final_features].iloc[train_index], df[final_features].iloc[test_index]
+  y_train, y_test = df['poi'].iloc[train_index], df['poi'].iloc[test_index]
 
-# print "SVM"
-# clf = SVC(kernel='linear', C=100)
-# clf = clf.fit(features_train, labels_train)
-# pred = clf.predict(features_test)
-# print precision_score(labels_test, pred)
-# print recall_score(labels_test, pred)
+  print "SVM"
+  svm = SVC(kernel='linear', C=10)
+  svm = svm.fit(X_train, y_train)
+  pred = svm.predict(X_test)
+  print precision_score(y_test, pred)
+  print recall_score(y_test, pred)
 
-# print "Random Forest"
-# clf = RandomForestClassifier(min_samples_split=5, n_estimators=100)
-# clf = clf.fit(features_train, labels_train)
-# pred = clf.predict(features_test)
-# print precision_score(labels_test, pred)
-# print recall_score(labels_test, pred)
+for train_index, test_index in sss.split(df[final_features], df['poi']):
+  # print("TRAIN:", train_index, "TEST:", test_index)
+  X_train, X_test = df[final_features].iloc[train_index], df[final_features].iloc[test_index]
+  y_train, y_test = df['poi'].iloc[train_index], df['poi'].iloc[test_index]
+
+  print "Random Forest"
+  forest = RandomForestClassifier(min_samples_split=5, n_estimators=100)
+  forest = forest.fit(X_train, y_train)
+  pred = forest.predict(X_test)
+  print precision_score(y_test, pred)
+  print recall_score(y_test, pred)
+
+for train_index, test_index in sss.split(df[final_features], df['poi']):
+  # print("TRAIN:", train_index, "TEST:", test_index)
+  X_train, X_test = df[final_features].iloc[train_index], df[final_features].iloc[test_index]
+  y_train, y_test = df['poi'].iloc[train_index], df['poi'].iloc[test_index]
+
+  print "Naive Bayes"
+  clf = GaussianNB()
+  clf = clf.fit(X_train, y_train)
+  pred = clf.predict(X_test)
+  print precision_score(y_test, pred)
+  print recall_score(y_test, pred)
 
 ### Make features list for data dump
-features_list = ['poi'] + temp_features
+features_list = ['poi'] + final_features
 
 ### Reset index to names
 df = df.set_index(['index'])
