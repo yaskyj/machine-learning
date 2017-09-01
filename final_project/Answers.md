@@ -32,7 +32,7 @@ long_term_incentive 80
 
 2. What features did you end up using in your POI identifier, and what selection process did you use to pick them? Did you have to do any scaling? Why or why not? As part of the assignment, you should attempt to engineer your own feature that does not come ready-made in the dataset -- explain what feature you tried to make, and the rationale behind it. (You do not necessarily have to use it in the final analysis, only engineer and test it.) In your feature selection step, if you used an algorithm like a decision tree, please also give the feature importances of the features that you use, and if you used an automated feature selection function like SelectKBest, please report the feature scores and reasons for your choice of parameter values.  [relevant rubric items: “create new features”, “intelligently select features”, “properly scale features”]
 
-The final features list consisted of 'bonus', 'exercised_stock_options', and 'total_stock_value'. The select percentile feature selection function (using 30%) was used to eliminate almost one third of the total features. The chart below show the averages performance for three runs of each algorithm using the different percentages of features in the select percentile function. 30% was used as it showed the best performance tradeoff in both recall and precision. Before feature selection, the sklearn minmax scalar was used on all values as I knew that one of the classifiers I would use would be a support vector machine.
+The final features list consisted of 'bonus', 'exercised_stock_options', and 'total_stock_value'. First the recursive selection feature selection function was used. The select percentile feature selection function (using 30%) was used to eliminate almost one third of the total features. The chart below show the averages performance for three runs of each algorithm using the different percentages of features in the select percentile function. 30% was used as it showed the best performance tradeoff in both recall and precision. Before feature selection, the sklearn minmax scalar was used on all values as I knew that one of the classifiers I would use would be a support vector machine.
 
 Select Percentile Performance:
 
@@ -92,7 +92,7 @@ SVM: recall = 0.066667, precision = 0.166667
 
 Forest: recall = 0.133333, precision = 0.500000
 
-Below are the feature importance scores output from SelectPercentile (since Random Forest was used in the recursive feature selection, these can change on subsequent script runs so I hard coded these features into subsequent runs of the script for consistency):
+Below are the feature importance scores output from SelectPercentile for the final features used. These features were hardcoded into subsequent runs of the script for consistency:
 
 exercised_stock_options 6.84550933503
 
