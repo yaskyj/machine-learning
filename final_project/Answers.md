@@ -6,17 +6,27 @@ Using various monetary and email features, the goal is to identify persons of in
 The dataset consists of the largest corpus of emails from a private companry available. In addition, other features were generated from the financial statements of the company found online. There was one major outlier in the dataset. Upon investigation, this was a mistake from the spreadsheet containing all monetary information used in the features. The "TOTAL" field was picked up in the spreadsheet. In addition, an item for "THE TRAVEL AGENCY IN THE PARK" was in the dataset. Finally, Eugene Lockhart did not have any values associated with any features. All three were removed as outliers. 
 
 Some basic characteristics of the data:
+
 Total number people in dataset: 146
+
 Number of POI: 18
+
 Number of Non POI: 128
+
 Number of features in data: 22
 
 Features containing 50% NA values:
+
 loan_advances 142
+
 director_fees 129
+
 restricted_stock_deferred 128
+
 deferral_payments 107
+
 deferred_income 97
+
 long_term_incentive 80
 
 
