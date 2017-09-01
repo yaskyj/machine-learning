@@ -22,7 +22,37 @@ long_term_incentive 80
 
 2. What features did you end up using in your POI identifier, and what selection process did you use to pick them? Did you have to do any scaling? Why or why not? As part of the assignment, you should attempt to engineer your own feature that does not come ready-made in the dataset -- explain what feature you tried to make, and the rationale behind it. (You do not necessarily have to use it in the final analysis, only engineer and test it.) In your feature selection step, if you used an algorithm like a decision tree, please also give the feature importances of the features that you use, and if you used an automated feature selection function like SelectKBest, please report the feature scores and reasons for your choice of parameter values.  [relevant rubric items: “create new features”, “intelligently select features”, “properly scale features”]
 
-The final features list consisted of 'bonus', 'exercised_stock_options', and 'total_stock_value'. The sklearn recursive feature elimination library was initially used to choose the features. After this, the select percentile feature selection function (using 30%) was used to eliminate almost one third of the total features identified by the recursive elimination. Before feature selection, the sklearn minmax scalar was used on all values as I knew that one of the classifiers I would use would be a support vector machine.
+The final features list consisted of 'bonus', 'exercised_stock_options', and 'total_stock_value'. The select percentile feature selection function (using 30%) was used to eliminate almost one third of the total features. The chart below show the averages performance for three runs of each algorithm using the different percentages of features in the select percentile function. 30% was used as it showed the best performance tradeoff performance in both recall and precision. Before feature selection, the sklearn minmax scalar was used on all values as I knew that one of the classifiers I would use would be a support vector machine.
+
+Select Percentile Performance:
+10%
+Naive: recall = 0.266667, precision = 0.555556
+SVM: recall = 0.000000, precision = 0.000000
+Forest: recall = 0.133333, precision = 0.333333
+20%
+Naive: recall = 0.266667, precision = 0.500000
+SVM: recall = 0.000000, precision = 0.000000
+Forest: recall = 0.133333, precision = 0.222222
+30%
+Naive: recall = 0.333333, precision = 0.412500
+SVM: recall = 0.033333, precision = 0.166667
+Forest: recall = 0.133333, precision = 0.416667
+40%
+Naive: recall = 0.266667, precision = 0.500000
+SVM: recall = 0.000000, precision = 0.000000
+Forest: recall = 0.266667, precision = 0.500000
+50%
+Naive: recall = 0.400000, precision = 0.267857
+SVM: recall = 0.000000, precision = 0.000000
+Forest: recall = 0.200000, precision = 0.444444
+60%
+Naive: recall = 0.400000, precision = 0.267857
+SVM: recall = 0.000000, precision = 0.000000
+Forest: recall = 0.133333, precision = 0.444444
+100%
+Naive: recall = 0.800000, precision = 0.140453
+SVM: recall = 0.066667, precision = 0.166667
+Forest: recall = 0.133333, precision = 0.500000
 
 Below are the feature importance scores output from SelectPercentile (since Random Forest was used in the recursive feature selection, these can change on subsequent script runs so I hard coded these features into subsequent runs of the script for consistency):
 exercised_stock_options 6.84550933503
@@ -49,4 +79,4 @@ A classic mistake is not properly splitting your data between testing and traini
 
 Another mistake is relying solely on accuracy. With datasets showing an extremely skewed classification, like the Enron dataset, where there are many more non-POIs than POIs, just setting all predictions to non-POIs would give a high accuracy. Both precision and recall were the primary measures of validation. These were used both in the cross validation GridSearch for both Random Forest and SVM, and the metrics were used against the test set in the Naive Bayes classifier.
 
-Precision measures the percentage of actual POIs identified out of the combined true positives (people the model identified as POIs that are actually POIs) and false positives (people the model identified as POIs that are not actually POIs). Recall measures the percentage of actual POIs identified out of the total true positives and false negatives (people the model indentified as non-POIs but where actually POIs). All of the classifiers fluctuated in both precision and recall, but I believe that recall is the most appropriate metric for this task. The identification of the most actual POIs is the purpose of building this model.
+Both precision and recall are better metrics for this dataset then pure accuracy. Precision measures the percentage of actual POIs identified out of the combined true positives (people the model identified as POIs that are actually POIs) and false positives (people the model identified as POIs that are not actually POIs). Recall measures the percentage of actual POIs identified out of the total true positives and false negatives (people the model indentified as non-POIs but where actually POIs). Recall shows the accuracy of the model to show true POIs identified out of all the POIs in the dataset while the precision shows the accuracy of the model predictions just for the those items which the model predicted to be POIs. All of the classifiers fluctuated in both precision and recall.
